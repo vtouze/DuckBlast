@@ -261,6 +261,7 @@ GameObject:
   m_Component:
   - component: {fileID: 64507510}
   - component: {fileID: 64507511}
+  - component: {fileID: 64507512}
   m_Layer: 0
   m_Name: Gun
   m_TagString: Untagged
@@ -341,6 +342,25 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &64507512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 64507509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b5d8aa47ce4f1e4b9b6f2b960dc9d63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GunController
+  moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
+  moveSpeed: 5
+  minX: -8
+  maxX: 8
+  yPosition: -4
+  floatAmplitude: 0.1
+  floatSpeed: 4
 --- !u!1 &67119192
 GameObject:
   m_ObjectHideFlags: 0
