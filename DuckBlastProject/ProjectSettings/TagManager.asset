@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 3
   tags:
   - Target
+  - PlayButton
+  - LeaderboardButton
+  - SoundButton
   layers:
   - Default
   - TransparentFX
