@@ -1894,8 +1894,8 @@ MonoBehaviour:
   crosshairTransform: {fileID: 971962849}
   ammoPrefab: {fileID: 293500491841286309, guid: 6ca246c70d034d041b414201ee0f9f61, type: 3}
   ammoContainer: {fileID: 1127064656}
-  ejectionForce: 3
-  ejectionDuration: 0.8
+  scorePopupPrefab: {fileID: 7150589346216679563, guid: aad121ea63db0dd44879922f85836788, type: 3}
+  scoreCanvas: {fileID: 1146012476}
 --- !u!4 &623092711
 Transform:
   m_ObjectHideFlags: 0

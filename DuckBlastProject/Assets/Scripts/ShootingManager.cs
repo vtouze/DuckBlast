@@ -11,8 +11,17 @@ public class ShootingManager : MonoBehaviour
     [SerializeField] private Transform crosshairTransform;
     [SerializeField] private GameObject ammoPrefab;
     [SerializeField] private Transform ammoContainer;
-    [SerializeField] private float ejectionForce = 3f;
-    [SerializeField] private float ejectionDuration = 0.8f;
+    private float ejectionForce = 3f;
+    private float ejectionDuration = 0.8f;
+
+    [SerializeField] private GameObject scorePopupPrefab;
+    private float popupLifetime = 1f;
+    private float popupMoveSpeed = 1f;
+    private float popupFadeSpeed = 1f;
+    private Vector2 popupFixedOffset = new Vector2(50f, 50f);
+    private int popupSortingOrder = 10;
+
+    [SerializeField] private Canvas scoreCanvas;
 
     private int score = 0;
     private Camera mainCamera;
@@ -31,13 +40,16 @@ public class ShootingManager : MonoBehaviour
         Debug.DrawRay(worldPosition, Vector2.right * 0.1f, Color.red, 1f);
         RaycastHit2D hit = Physics2D.Raycast(worldPosition, Vector2.zero);
 
+        int scoreValue = 10;
+
         StartCoroutine(EjectAmmo());
 
         if (hit.collider != null && hit.collider.CompareTag("Target"))
         {
             StartCoroutine(FallAndDestroy(hit.transform));
             SpawnImpact(hit.point, hit.transform);
-            UpdateScore(10);
+            UpdateScore(scoreValue);
+            SpawnScorePopup(hit.transform.position, scoreValue);
         }
         else
         {
@@ -130,6 +142,61 @@ public class ShootingManager : MonoBehaviour
             }
             Destroy(impact, 0.5f);
         }
+    }
+
+    private void SpawnScorePopup(Vector3 worldPosition, int scoreValue)
+    {
+        if (scorePopupPrefab == null || scoreCanvas == null)
+            return;
+
+        Vector2 screenPosition = mainCamera.WorldToScreenPoint(worldPosition);
+
+        Vector2 fixedOffset = popupFixedOffset;
+        Vector2 popupPosition = screenPosition + fixedOffset;
+
+        GameObject popup = Instantiate(scorePopupPrefab, scoreCanvas.transform);
+        RectTransform popupRect = popup.GetComponent<RectTransform>();
+        popupRect.position = popupPosition;
+
+        Canvas popupCanvas = popup.GetComponent<Canvas>();
+        if (popupCanvas == null)
+        {
+            popupCanvas = popup.AddComponent<Canvas>();
+        }
+        popupCanvas.overrideSorting = true;
+        popupCanvas.sortingOrder = popupSortingOrder;
+
+        TMP_Text popupText = popup.GetComponent<TMP_Text>();
+        if (popupText != null)
+        {
+            popupText.text = "+" + scoreValue.ToString();
+            StartCoroutine(AnimateScorePopup(popup, popupText));
+        }
+    }
+
+    private IEnumerator AnimateScorePopup(GameObject popup, TMP_Text popupText)
+    {
+        float elapsed = 0f;
+        Color startColor = popupText.color;
+        RectTransform popupRect = popup.GetComponent<RectTransform>();
+        Vector3 startPosition = popupRect.position;
+        Vector3 endPosition = startPosition + Vector3.up * 50f;
+
+        while (elapsed < popupLifetime)
+        {
+            float progress = elapsed / popupLifetime;
+
+            popupRect.position = Vector3.Lerp(startPosition, endPosition, progress);
+
+            Color newColor = startColor;
+            newColor.a = Mathf.Lerp(1f, 0f, progress);
+            popupText.color = newColor;
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(popup);
     }
 
     private void UpdateScore(int points)
