@@ -17,9 +17,17 @@ public class TargetManager : MonoBehaviour
     public List<SpawnLine> spawnLines;
     public float floatAmplitude = 0.2f;
     public float floatSpeed = 1f;
+    private bool isActive = false;
+
+    private void OnEnable()
+    {
+        isActive = true;
+    }
 
     private void Update()
     {
+        if (!isActive) return;
+
         foreach (SpawnLine line in spawnLines)
         {
             line.timer += Time.deltaTime;
@@ -35,14 +43,12 @@ public class TargetManager : MonoBehaviour
     {
         GameObject prefab = line.prefabs[Random.Range(0, line.prefabs.Count)];
         GameObject target = Instantiate(prefab, GetSpawnPosition(line), Quaternion.identity);
-
         FloatAndMove floatAndMove = target.AddComponent<FloatAndMove>();
         floatAndMove.moveSpeed = line.moveSpeed;
         floatAndMove.moveRight = line.moveRight;
         floatAndMove.floatAmplitude = floatAmplitude;
         floatAndMove.floatSpeed = floatSpeed;
     }
-
 
     private Vector3 GetSpawnPosition(SpawnLine line)
     {
