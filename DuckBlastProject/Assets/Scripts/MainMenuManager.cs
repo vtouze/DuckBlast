@@ -8,20 +8,27 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Sprite soundOnSprite;
     [SerializeField] private Sprite soundOffSprite;
     private string gameSceneName = "Game";
+    [SerializeField] private TransitionManager transitionManager;
 
     private bool isSoundMuted = false;
 
     private void Start()
     {
         UpdateSoundButtonSprite();
-
         if (leaderboardPanel != null)
             leaderboardPanel.SetActive(false);
     }
 
     public void StartGame()
     {
-        SceneManager.LoadScene(gameSceneName);
+        if (transitionManager != null)
+        {
+            transitionManager.StartTransition(gameSceneName);
+        }
+        else
+        {
+            SceneManager.LoadScene(gameSceneName);
+        }
     }
 
     public void ToggleLeaderboard()
@@ -32,6 +39,7 @@ public class MainMenuManager : MonoBehaviour
             leaderboardPanel.SetActive(!isActive);
         }
     }
+
     public void ToggleSound()
     {
         isSoundMuted = !isSoundMuted;
@@ -50,7 +58,6 @@ public class MainMenuManager : MonoBehaviour
             }
         }
     }
-
     private void LoadLeaderboardData()
     {
         // Placeholder for the leaderboard logic
