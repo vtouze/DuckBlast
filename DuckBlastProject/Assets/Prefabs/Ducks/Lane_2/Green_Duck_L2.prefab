@@ -78,7 +78,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -5
+  m_SortingOrder: -3
   m_Sprite: {fileID: -5238576291095533347, guid: ac2b1e2460f350f42a2436aa4df724e4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -137,7 +137,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloatAndMove
   moveSpeed: 2
-  moveRight: 1
+  moveRight: 0
   floatAmplitude: 0.2
   floatSpeed: 1
 --- !u!1 &4828989942672397039
@@ -150,7 +150,7 @@ GameObject:
   m_Component:
   - component: {fileID: 626428262974097016}
   - component: {fileID: 5230673553224899957}
-  - component: {fileID: 2503973771240423145}
+  - component: {fileID: 8497817491801586855}
   m_Layer: 0
   m_Name: Duck
   m_TagString: Target
@@ -219,7 +219,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -5
+  m_SortingOrder: -3
   m_Sprite: {fileID: 3716761956003175692, guid: 57a10b55c5ca01b41a0c352eda0770fb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -231,7 +231,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!61 &2503973771240423145
+--- !u!61 &8497817491801586855
 BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

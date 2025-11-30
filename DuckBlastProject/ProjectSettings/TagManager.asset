@@ -8,6 +8,9 @@ TagManager:
   - PlayButton
   - LeaderboardButton
   - SoundButton
+  - Bonus
+  - TargetCenter
+  - TargetEdge
   layers:
   - Default
   - TransparentFX

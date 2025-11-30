@@ -13,16 +13,13 @@ public class ShootingManager : MonoBehaviour
     [SerializeField] private Transform ammoContainer;
     private float ejectionForce = 3f;
     private float ejectionDuration = 0.8f;
-
     [SerializeField] private GameObject scorePopupPrefab;
     private float popupLifetime = 1f;
     private float popupMoveSpeed = 1f;
     private float popupFadeSpeed = 1f;
     private Vector2 popupFixedOffset = new Vector2(50f, 50f);
     private int popupSortingOrder = 10;
-
     [SerializeField] private Canvas scoreCanvas;
-
     private int score = 0;
     private Camera mainCamera;
 
@@ -39,17 +36,45 @@ public class ShootingManager : MonoBehaviour
         Vector2 worldPosition = mainCamera.ScreenToWorldPoint(screenPosition);
         Debug.DrawRay(worldPosition, Vector2.right * 0.1f, Color.red, 1f);
         RaycastHit2D hit = Physics2D.Raycast(worldPosition, Vector2.zero);
-
-        int scoreValue = 10;
-
         StartCoroutine(EjectAmmo());
 
-        if (hit.collider != null && hit.collider.CompareTag("Target"))
+        if (hit.collider != null)
         {
-            StartCoroutine(FallAndDestroy(hit.transform));
-            SpawnImpact(hit.point, hit.transform);
-            UpdateScore(scoreValue);
-            SpawnScorePopup(hit.transform.position, scoreValue);
+            int scoreValue = 10;
+            Transform targetTransform = hit.transform;
+
+            if (hit.collider.CompareTag("Bonus"))
+            {
+                scoreValue = 20;
+                Transform duckTransform = hit.transform.parent;
+                if (duckTransform != null && duckTransform.CompareTag("Target"))
+                {
+                    targetTransform = duckTransform;
+                }
+            }
+            else if (hit.collider.CompareTag("TargetCenter"))
+            {
+                scoreValue = 30;
+                targetTransform = hit.transform.parent;
+            }
+            else if (hit.collider.CompareTag("TargetEdge"))
+            {
+                scoreValue = 10;
+                targetTransform = hit.transform.parent;
+            }
+            else if (hit.collider.CompareTag("Target"))
+            {
+                scoreValue = 10;
+            }
+
+            if (targetTransform.CompareTag("Target") || hit.collider.CompareTag("Bonus") ||
+                hit.collider.CompareTag("TargetCenter") || hit.collider.CompareTag("TargetEdge"))
+            {
+                StartCoroutine(FallAndDestroy(targetTransform));
+                SpawnImpact(hit.point, targetTransform);
+                UpdateScore(scoreValue);
+                SpawnScorePopup(hit.point, scoreValue);
+            }
         }
         else
         {
@@ -61,35 +86,26 @@ public class ShootingManager : MonoBehaviour
     {
         if (ammoPrefab == null || ammoContainer == null)
             yield break;
-
         GameObject ammo = Instantiate(ammoPrefab, ammoContainer.position, ammoContainer.rotation, ammoContainer);
         SpriteRenderer ammoRenderer = ammo.GetComponent<SpriteRenderer>();
         Rigidbody2D ammoRigidbody = ammo.GetComponent<Rigidbody2D>();
-
         if (ammoRenderer == null)
             yield break;
-
         Vector2 ejectionDirection = (Vector2.up + Vector2.right * -0.5f).normalized;
         ammoRigidbody.linearVelocity = ejectionDirection * ejectionForce;
-
         float elapsed = 0f;
         Quaternion startRotation = ammo.transform.rotation;
         Vector3 startScale = ammo.transform.localScale;
-
         while (elapsed < ejectionDuration)
         {
             float progress = elapsed / ejectionDuration;
-
             ammo.transform.rotation = startRotation * Quaternion.Euler(0f, 0f, progress * 360f);
-
             Color color = ammoRenderer.color;
             color.a = 1f - progress;
             ammoRenderer.color = color;
-
             elapsed += Time.deltaTime;
             yield return null;
         }
-
         Destroy(ammo);
     }
 
@@ -103,7 +119,6 @@ public class ShootingManager : MonoBehaviour
         Vector3 startScale = target.localScale;
         float maxRotation = 45f;
         float squashScale = 0.7f;
-
         while (elapsed < fallDuration)
         {
             float progress = elapsed / fallDuration;
@@ -148,16 +163,12 @@ public class ShootingManager : MonoBehaviour
     {
         if (scorePopupPrefab == null || scoreCanvas == null)
             return;
-
         Vector2 screenPosition = mainCamera.WorldToScreenPoint(worldPosition);
-
         Vector2 fixedOffset = popupFixedOffset;
         Vector2 popupPosition = screenPosition + fixedOffset;
-
         GameObject popup = Instantiate(scorePopupPrefab, scoreCanvas.transform);
         RectTransform popupRect = popup.GetComponent<RectTransform>();
         popupRect.position = popupPosition;
-
         Canvas popupCanvas = popup.GetComponent<Canvas>();
         if (popupCanvas == null)
         {
@@ -165,7 +176,6 @@ public class ShootingManager : MonoBehaviour
         }
         popupCanvas.overrideSorting = true;
         popupCanvas.sortingOrder = popupSortingOrder;
-
         TMP_Text popupText = popup.GetComponent<TMP_Text>();
         if (popupText != null)
         {
@@ -181,21 +191,16 @@ public class ShootingManager : MonoBehaviour
         RectTransform popupRect = popup.GetComponent<RectTransform>();
         Vector3 startPosition = popupRect.position;
         Vector3 endPosition = startPosition + Vector3.up * 50f;
-
         while (elapsed < popupLifetime)
         {
             float progress = elapsed / popupLifetime;
-
             popupRect.position = Vector3.Lerp(startPosition, endPosition, progress);
-
             Color newColor = startColor;
             newColor.a = Mathf.Lerp(1f, 0f, progress);
             popupText.color = newColor;
-
             elapsed += Time.deltaTime;
             yield return null;
         }
-
         Destroy(popup);
     }
 
