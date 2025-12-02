@@ -15,8 +15,6 @@ public class ShootingManager : MonoBehaviour
     private float ejectionDuration = 0.8f;
     [SerializeField] private GameObject scorePopupPrefab;
     private float popupLifetime = 1f;
-    private float popupMoveSpeed = 1f;
-    private float popupFadeSpeed = 1f;
     private Vector2 popupFixedOffset = new Vector2(50f, 50f);
     private int popupSortingOrder = 10;
     [SerializeField] private Canvas scoreCanvas;
