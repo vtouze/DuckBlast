@@ -192,7 +192,7 @@ public class ShootingManager : MonoBehaviour
         TMP_Text popupText = popup.GetComponent<TMP_Text>();
         if (popupText != null)
         {
-            popupText.text = "+" + scoreValue.ToString();
+            popupText.text = scoreValue.ToString();
             StartCoroutine(AnimateScorePopup(popup, popupText));
         }
     }
