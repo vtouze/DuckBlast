@@ -20,6 +20,21 @@ public class ShootingManager : MonoBehaviour
     [SerializeField] private Canvas scoreCanvas;
     private int score = 0;
     private Camera mainCamera;
+    private bool controlsEnabled = true;
+
+    public int GetScore()
+    {
+        return score;
+    }
+
+    public void SetControlsEnabled(bool enabled)
+    {
+        controlsEnabled = enabled;
+        if (fireButton != null)
+        {
+            fireButton.interactable = enabled;
+        }
+    }
 
     private void Awake()
     {
@@ -30,6 +45,8 @@ public class ShootingManager : MonoBehaviour
 
     private void Fire()
     {
+        if (!controlsEnabled) return;
+
         Vector3 screenPosition = crosshairTransform.position;
         Vector2 worldPosition = mainCamera.ScreenToWorldPoint(screenPosition);
         Debug.DrawRay(worldPosition, Vector2.right * 0.1f, Color.red, 1f);
@@ -40,7 +57,6 @@ public class ShootingManager : MonoBehaviour
         {
             int scoreValue = 10;
             Transform targetTransform = hit.transform;
-
             if (hit.collider.CompareTag("Bonus"))
             {
                 scoreValue = 20;
@@ -64,7 +80,6 @@ public class ShootingManager : MonoBehaviour
             {
                 scoreValue = 10;
             }
-
             if (targetTransform.CompareTag("Target") || hit.collider.CompareTag("Bonus") ||
                 hit.collider.CompareTag("TargetCenter") || hit.collider.CompareTag("TargetEdge"))
             {
