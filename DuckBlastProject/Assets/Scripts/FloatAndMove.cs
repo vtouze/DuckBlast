@@ -6,6 +6,7 @@ public class FloatAndMove : MonoBehaviour
     public bool moveRight = true;
     public float floatAmplitude = 0.2f;
     public float floatSpeed = 1f;
+
     private Vector3 initialPosition;
     private float floatOffset;
 

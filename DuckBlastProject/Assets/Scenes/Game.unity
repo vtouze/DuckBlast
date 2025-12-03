@@ -8850,8 +8850,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TargetManager
   spawnLines:
   - lineTransform: {fileID: 926003552}
-    spawnInterval: 3
-    moveSpeed: 1
+    spawnInterval:
+      min: 3
+      max: 5
+    moveSpeed:
+      min: 1
+      max: 3
     moveRight: 1
     prefabs:
     - {fileID: 2420766149251475826, guid: bc62808ae1fa8b542b1e3810dcab0815, type: 3}
@@ -8861,9 +8865,15 @@ MonoBehaviour:
     - {fileID: 749732154336134662, guid: 8ced02e3f99bfa344aaf66c58d5eb138, type: 3}
     - {fileID: 749732154336134662, guid: c2428957ed2a32b44b36063bacd7e2b7, type: 3}
     timer: 1
+    currentSpawnInterval: 0
+    currentMoveSpeed: 0
   - lineTransform: {fileID: 1648991708}
-    spawnInterval: 6
-    moveSpeed: 2.5
+    spawnInterval:
+      min: 3
+      max: 5
+    moveSpeed:
+      min: 1
+      max: 3
     moveRight: 0
     prefabs:
     - {fileID: 2420766149251475826, guid: a53e2f5abaa010b4388e4158854d89f8, type: 3}
@@ -8873,9 +8883,15 @@ MonoBehaviour:
     - {fileID: 749732154336134662, guid: 841a90e7a252ded488e607013d219d42, type: 3}
     - {fileID: 749732154336134662, guid: c45e2ab1430e17d46b312f325f76edf1, type: 3}
     timer: 1
+    currentSpawnInterval: 0
+    currentMoveSpeed: 0
   - lineTransform: {fileID: 475307793}
-    spawnInterval: 8
-    moveSpeed: 4
+    spawnInterval:
+      min: 3
+      max: 6
+    moveSpeed:
+      min: 2
+      max: 4
     moveRight: 1
     prefabs:
     - {fileID: 6409741652672376339, guid: 65083953351e24a4db844fc84cba80ea, type: 3}
@@ -8884,8 +8900,17 @@ MonoBehaviour:
     - {fileID: 1630084436180919388, guid: 4a2968436ec153340a4d94e608c34de5, type: 3}
     - {fileID: 6586761610559284659, guid: dc67678841eb7df43873af1fee7453df, type: 3}
     timer: 0
-  floatAmplitude: 0.5
-  floatSpeed: 2
+    currentSpawnInterval: 0
+    currentMoveSpeed: 0
+  floatAmplitude:
+    min: 0.1
+    max: 0.3
+  floatSpeed:
+    min: 1
+    max: 3
+  initialOffsetRange:
+    min: 8
+    max: 15
 --- !u!4 &1921978061
 Transform:
   m_ObjectHideFlags: 0
