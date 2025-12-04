@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 public class GunController : MonoBehaviour
 {
     [SerializeField] private InputActionReference moveActionReference;
+    [SerializeField] private ShootingManager shootingManager;
 
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
@@ -24,6 +25,23 @@ public class GunController : MonoBehaviour
     private float velocityX;
     private float targetX;
 
+    private bool controlsEnabled = true;
+
+    private void OnEnable()
+    {
+        ShootingManager.OnControlsEnabledChanged += HandleControlsEnabledChanged;
+    }
+
+    private void OnDisable()
+    {
+        ShootingManager.OnControlsEnabledChanged -= HandleControlsEnabledChanged;
+    }
+
+    private void HandleControlsEnabledChanged(bool enabled)
+    {
+        controlsEnabled = enabled;
+    }
+
     private void Start()
     {
         initialPosition = transform.position;
@@ -32,6 +50,11 @@ public class GunController : MonoBehaviour
 
     private void Update()
     {
+        if (!controlsEnabled)
+        {
+            return;
+        }
+
         float horizontalInput = moveActionReference.action.ReadValue<Vector2>().x;
         horizontalInput = ApplyDeadZone(horizontalInput);
 
@@ -46,7 +69,6 @@ public class GunController : MonoBehaviour
         );
 
         floatOffset = Mathf.Sin(Time.time * floatSpeed) * floatAmplitude;
-
         transform.position = new Vector3(
             currentX,
             yPosition + floatOffset,
@@ -60,7 +82,6 @@ public class GunController : MonoBehaviour
         {
             return 0f;
         }
-
         return Mathf.Sign(input) * ((Mathf.Abs(input) - deadZone) / (1 - deadZone));
     }
 }

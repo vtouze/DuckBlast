@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private InputActionReference moveActionReference;
+    [SerializeField] private ShootingManager shootingManager;
 
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 1500f;
@@ -20,7 +21,10 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (!enabled) return;
+        if (shootingManager != null && !shootingManager.AreControlsEnabled())
+        {
+            return;
+        }
 
         Vector2 moveDirection = moveActionReference.action.ReadValue<Vector2>();
         moveDirection = ApplyDeadZone(moveDirection);
@@ -30,6 +34,7 @@ public class PlayerController : MonoBehaviour
 
         Vector2 minPosition = canvasRectTransform.rect.min + crosshairRectTransform.sizeDelta / 2;
         Vector2 maxPosition = canvasRectTransform.rect.max - crosshairRectTransform.sizeDelta / 2;
+
         targetPosition.x = Mathf.Clamp(targetPosition.x, minPosition.x, maxPosition.x);
         targetPosition.y = Mathf.Clamp(targetPosition.y, minPosition.y, maxPosition.y);
 
@@ -47,7 +52,6 @@ public class PlayerController : MonoBehaviour
         {
             return Vector2.zero;
         }
-
         return input.normalized * ((input.magnitude - deadZone) / (1 - deadZone));
     }
 }

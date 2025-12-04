@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using TMPro;
+using System;
 
 public class ShootingManager : MonoBehaviour
 {
@@ -11,9 +12,10 @@ public class ShootingManager : MonoBehaviour
     [SerializeField] private Transform crosshairTransform;
     [SerializeField] private GameObject ammoPrefab;
     [SerializeField] private Transform ammoContainer;
+    [SerializeField] private ComboSystem comboSystem;
+    [SerializeField] private GameObject scorePopupPrefab;
     private float ejectionForce = 3f;
     private float ejectionDuration = 0.8f;
-    [SerializeField] private GameObject scorePopupPrefab;
     private float popupLifetime = 1f;
     private Vector2 popupFixedOffset = new Vector2(50f, 50f);
     private int popupSortingOrder = 10;
@@ -21,6 +23,8 @@ public class ShootingManager : MonoBehaviour
     private int score = 0;
     private Camera mainCamera;
     private bool controlsEnabled = true;
+
+    public static event Action<bool> OnControlsEnabledChanged;
 
     public int GetScore()
     {
@@ -34,7 +38,15 @@ public class ShootingManager : MonoBehaviour
         {
             fireButton.interactable = enabled;
         }
+
+        OnControlsEnabledChanged?.Invoke(enabled);
     }
+
+    public bool AreControlsEnabled()
+    {
+        return controlsEnabled;
+    }
+
 
     private void Awake()
     {
@@ -55,11 +67,12 @@ public class ShootingManager : MonoBehaviour
 
         if (hit.collider != null)
         {
-            int scoreValue = 10;
+            int baseScoreValue = 10;
             Transform targetTransform = hit.transform;
+
             if (hit.collider.CompareTag("Bonus"))
             {
-                scoreValue = 20;
+                baseScoreValue = 20;
                 Transform duckTransform = hit.transform.parent;
                 if (duckTransform != null && duckTransform.CompareTag("Target"))
                 {
@@ -68,30 +81,36 @@ public class ShootingManager : MonoBehaviour
             }
             else if (hit.collider.CompareTag("TargetCenter"))
             {
-                scoreValue = 30;
+                baseScoreValue = 30;
                 targetTransform = hit.transform.parent;
             }
             else if (hit.collider.CompareTag("TargetEdge"))
             {
-                scoreValue = 10;
+                baseScoreValue = 10;
                 targetTransform = hit.transform.parent;
             }
             else if (hit.collider.CompareTag("Target"))
             {
-                scoreValue = 10;
+                baseScoreValue = 10;
             }
+
             if (targetTransform.CompareTag("Target") || hit.collider.CompareTag("Bonus") ||
                 hit.collider.CompareTag("TargetCenter") || hit.collider.CompareTag("TargetEdge"))
             {
+                comboSystem.RegisterHit(baseScoreValue);
+                int scoreValue = comboSystem.CalculateScore(baseScoreValue);
+
                 StartCoroutine(FallAndDestroy(targetTransform));
                 SpawnImpact(hit.point, targetTransform);
                 UpdateScore(scoreValue);
-                SpawnScorePopup(hit.point, scoreValue);
+
+                SpawnScorePopup(hit.point, scoreValue, baseScoreValue);
             }
         }
         else
         {
             SpawnImpact(worldPosition);
+            comboSystem.RegisterMiss();
         }
     }
 
@@ -132,6 +151,7 @@ public class ShootingManager : MonoBehaviour
         Vector3 startScale = target.localScale;
         float maxRotation = 45f;
         float squashScale = 0.7f;
+
         while (elapsed < fallDuration)
         {
             float progress = elapsed / fallDuration;
@@ -141,14 +161,17 @@ public class ShootingManager : MonoBehaviour
             float rotationProgress = Mathf.Sin(progress * Mathf.PI);
             float currentRotation = maxRotation * rotationProgress;
             target.rotation = startRotation * Quaternion.Euler(currentRotation, 0f, 0f);
+
             if (progress > 0.7f)
             {
                 float squashProgress = (progress - 0.7f) / 0.3f;
                 target.localScale = Vector3.Lerp(startScale, startScale * squashScale, squashProgress);
             }
+
             elapsed += Time.deltaTime;
             yield return null;
         }
+
         Destroy(target.gameObject);
     }
 
@@ -172,16 +195,18 @@ public class ShootingManager : MonoBehaviour
         }
     }
 
-    private void SpawnScorePopup(Vector3 worldPosition, int scoreValue)
+    private void SpawnScorePopup(Vector3 worldPosition, int scoreValue, int baseScoreValue)
     {
         if (scorePopupPrefab == null || scoreCanvas == null)
             return;
+
         Vector2 screenPosition = mainCamera.WorldToScreenPoint(worldPosition);
-        Vector2 fixedOffset = popupFixedOffset;
-        Vector2 popupPosition = screenPosition + fixedOffset;
+        Vector2 popupPosition = screenPosition + popupFixedOffset;
+
         GameObject popup = Instantiate(scorePopupPrefab, scoreCanvas.transform);
         RectTransform popupRect = popup.GetComponent<RectTransform>();
         popupRect.position = popupPosition;
+
         Canvas popupCanvas = popup.GetComponent<Canvas>();
         if (popupCanvas == null)
         {
@@ -189,10 +214,45 @@ public class ShootingManager : MonoBehaviour
         }
         popupCanvas.overrideSorting = true;
         popupCanvas.sortingOrder = popupSortingOrder;
+
         TMP_Text popupText = popup.GetComponent<TMP_Text>();
         if (popupText != null)
         {
-            popupText.text = scoreValue.ToString();
+            int currentMultiplier = comboSystem.GetCurrentMultiplier();
+
+            if (currentMultiplier > 1)
+            {
+                popupText.text = $"+{baseScoreValue} x{currentMultiplier}";
+                popupText.fontSize *= 1.2f;
+                popupText.alignment = TextAlignmentOptions.Center;
+            }
+            else
+            {
+                popupText.text = $"+{scoreValue}";
+                popupText.alignment = TextAlignmentOptions.Left;
+            }
+
+            if (currentMultiplier == 2)
+            {
+                popupText.color = comboSystem.comboColor2;
+                popupText.fontStyle = FontStyles.Bold;
+            }
+            else if (currentMultiplier == 3)
+            {
+                popupText.color = comboSystem.comboColor3;
+                popupText.fontStyle = FontStyles.Bold | FontStyles.Italic;
+            }
+            else if (currentMultiplier == 4)
+            {
+                popupText.color = comboSystem.comboColor4;
+                popupText.fontStyle = FontStyles.Bold | FontStyles.Underline;
+            }
+            else
+            {
+                popupText.color = Color.white;
+                popupText.fontStyle = FontStyles.Normal;
+            }
+
             StartCoroutine(AnimateScorePopup(popup, popupText));
         }
     }
@@ -204,16 +264,31 @@ public class ShootingManager : MonoBehaviour
         RectTransform popupRect = popup.GetComponent<RectTransform>();
         Vector3 startPosition = popupRect.position;
         Vector3 endPosition = startPosition + Vector3.up * 50f;
+
+        int currentMultiplier = comboSystem.GetCurrentMultiplier();
+        bool isCombo = currentMultiplier > 1;
+        float oscillationAmount = isCombo ? 10f : 0f;
+        float oscillationSpeed = isCombo ? 15f : 0f;
+
         while (elapsed < popupLifetime)
         {
             float progress = elapsed / popupLifetime;
-            popupRect.position = Vector3.Lerp(startPosition, endPosition, progress);
+            Vector3 currentPosition = Vector3.Lerp(startPosition, endPosition, progress);
+
+            if (isCombo)
+            {
+                currentPosition.x += Mathf.Sin(elapsed * oscillationSpeed) * oscillationAmount * (1f - progress);
+            }
+
+            popupRect.position = currentPosition;
             Color newColor = startColor;
             newColor.a = Mathf.Lerp(1f, 0f, progress);
             popupText.color = newColor;
+
             elapsed += Time.deltaTime;
             yield return null;
         }
+
         Destroy(popup);
     }
 

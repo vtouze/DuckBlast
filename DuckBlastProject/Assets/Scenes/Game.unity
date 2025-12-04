@@ -356,6 +356,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunController
   moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
+  shootingManager: {fileID: 623092710}
   moveSpeed: 5
   smoothTime: 0.1
   deadZone: 0.1
@@ -670,7 +671,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 75}
+  m_SizeDelta: {x: 500, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &97167911
 MonoBehaviour:
@@ -2669,6 +2670,7 @@ GameObject:
   m_Component:
   - component: {fileID: 623092711}
   - component: {fileID: 623092710}
+  - component: {fileID: 623092712}
   m_Layer: 0
   m_Name: ShootingManager
   m_TagString: Untagged
@@ -2694,6 +2696,7 @@ MonoBehaviour:
   crosshairTransform: {fileID: 971962849}
   ammoPrefab: {fileID: 293500491841286309, guid: 6ca246c70d034d041b414201ee0f9f61, type: 3}
   ammoContainer: {fileID: 1127064656}
+  comboSystem: {fileID: 623092712}
   scorePopupPrefab: {fileID: 7150589346216679563, guid: aad121ea63db0dd44879922f85836788, type: 3}
   scoreCanvas: {fileID: 1146012476}
 --- !u!4 &623092711
@@ -2711,6 +2714,31 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1149532192}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &623092712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 623092709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed4f660bf4cd57d4c80265b7986cdaf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ComboSystem
+  comboTimeWindow: 2
+  comboThreshold2: 3
+  comboThreshold3: 6
+  comboThreshold4: 9
+  comboColor2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  comboColor3: {r: 1, g: 0, b: 0, a: 1}
+  comboColor4: {r: 1, g: 0, b: 1, a: 1}
+  OnComboUpdated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnComboReset:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &625103922
 GameObject:
   m_ObjectHideFlags: 0
@@ -4115,7 +4143,7 @@ MonoBehaviour:
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 4
+  m_ChildAlignment: 3
   m_Spacing: 0
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 1
@@ -5057,6 +5085,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
+  shootingManager: {fileID: 623092710}
   moveSpeed: 1500
   smoothTime: -0.1
   deadZone: 0.1
@@ -7488,7 +7517,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 150, y: 75}
+  m_SizeDelta: {x: 200, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1671488699
 MonoBehaviour:
@@ -9068,7 +9097,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 150, y: 75}
+  m_SizeDelta: {x: 200, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1966933237
 MonoBehaviour:
@@ -9732,7 +9761,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 75}
+  m_SizeDelta: {x: 500, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2116513444
 MonoBehaviour:
