@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
+using System.Collections;
 
 [System.Serializable]
 public class ComboEvent : UnityEvent<int, int, int> { }
@@ -17,26 +19,102 @@ public class ComboSystem : MonoBehaviour
     public Color comboColor3 = Color.red;
     public Color comboColor4 = Color.magenta;
 
+    [Header("Combo UI")]
+    [SerializeField] private Image comboTimerBar;
+    [SerializeField] private CanvasGroup comboUIGroup;
+    [SerializeField] private float fadeDuration = 0.3f;
+
     [Header("Events")]
     public ComboEvent OnComboUpdated;
     public UnityEvent OnComboReset;
+    public UnityEvent OnComboStarted;
+    public UnityEvent OnComboEnded;
 
     private int currentCombo = 0;
     private float lastHitTime = 0f;
     private int currentMultiplier = 1;
+    private Coroutine fadeCoroutine;
+    private bool isComboActive = false;
+    private bool isUIShown = false;
+
+    private void Start()
+    {
+        if (comboUIGroup != null)
+        {
+            comboUIGroup.alpha = 0f;
+            comboUIGroup.gameObject.SetActive(false);
+            isUIShown = false;
+        }
+
+        if (comboTimerBar != null)
+        {
+            Debug.Log("Combo Timer Bar is assigned");
+            if (comboTimerBar.type != Image.Type.Filled)
+            {
+                Debug.LogWarning("Combo Timer Bar should be of type 'Filled'");
+                comboTimerBar.type = Image.Type.Filled;
+            }
+
+            Color color = comboTimerBar.color;
+            color.a = 1f;
+            comboTimerBar.color = color;
+
+            comboTimerBar.fillAmount = 0f;
+        }
+        else
+        {
+            Debug.LogError("Combo Timer Bar is not assigned!");
+        }
+    }
 
     private void Update()
     {
-        if (currentCombo > 0 && Time.time - lastHitTime > comboTimeWindow)
+        if (isComboActive && Time.time - lastHitTime > comboTimeWindow)
         {
+            Debug.Log("Combo expired - resetting");
             ResetCombo();
+            return;
+        }
+
+        if (comboTimerBar != null && isComboActive)
+        {
+            float timeRemaining = comboTimeWindow - (Time.time - lastHitTime);
+            float fillAmount = Mathf.Clamp01(timeRemaining / comboTimeWindow);
+
+            Debug.Log($"Time remaining: {timeRemaining}, Fill amount: {fillAmount}");
+
+            comboTimerBar.fillAmount = fillAmount;
         }
     }
 
     public void RegisterHit(int baseScore)
     {
+        Debug.Log($"Registering hit - Current combo: {currentCombo}");
+
+        if (currentCombo == 0)
+        {
+            currentCombo++;
+            lastHitTime = Time.time;
+            UpdateMultiplier();
+            Debug.Log("First hit - combo started");
+            return;
+        }
+
+        if (currentCombo == comboThreshold2 - 1 && !isComboActive)
+        {
+            Debug.Log("Reached combo threshold - showing UI");
+            ShowComboUI();
+            isComboActive = true;
+        }
+
         currentCombo++;
         lastHitTime = Time.time;
+
+        if (comboTimerBar != null)
+        {
+            comboTimerBar.fillAmount = 1f;
+            Debug.Log("Timer bar reset to full");
+        }
 
         UpdateMultiplier();
         OnComboUpdated?.Invoke(currentCombo, currentMultiplier, baseScore);
@@ -44,7 +122,17 @@ public class ComboSystem : MonoBehaviour
 
     public void RegisterMiss()
     {
-        ResetCombo();
+        if (isComboActive)
+        {
+            Debug.Log("Miss registered - resetting active combo");
+            ResetCombo();
+        }
+        else if (currentCombo > 0)
+        {
+            Debug.Log("Miss registered - resetting partial combo");
+            currentCombo = 0;
+            currentMultiplier = 1;
+        }
     }
 
     private void UpdateMultiplier()
@@ -65,27 +153,90 @@ public class ComboSystem : MonoBehaviour
         {
             currentMultiplier = 1;
         }
+
+        Debug.Log($"Multiplier updated to: {currentMultiplier}");
     }
 
     private void ResetCombo()
     {
+        Debug.Log("Resetting combo");
         currentCombo = 0;
         currentMultiplier = 1;
+        isComboActive = false;
         OnComboReset?.Invoke();
+        HideComboUI();
     }
 
-    public int GetCurrentMultiplier()
+    private void ShowComboUI()
     {
-        return currentMultiplier;
+        if (comboUIGroup != null && !isUIShown)
+        {
+            Debug.Log("Showing combo UI");
+            if (fadeCoroutine != null)
+            {
+                StopCoroutine(fadeCoroutine);
+            }
+
+            comboUIGroup.gameObject.SetActive(true);
+
+            if (comboTimerBar != null)
+            {
+                comboTimerBar.fillAmount = 1f;
+            }
+
+            fadeCoroutine = StartCoroutine(FadeUI(comboUIGroup, 0f, 1f, fadeDuration));
+            OnComboStarted?.Invoke();
+            isUIShown = true;
+        }
     }
 
-    public int GetCurrentCombo()
+    private void HideComboUI()
     {
-        return currentCombo;
+        if (comboUIGroup != null && isUIShown)
+        {
+            Debug.Log("Hiding combo UI");
+            if (fadeCoroutine != null)
+            {
+                StopCoroutine(fadeCoroutine);
+            }
+
+            fadeCoroutine = StartCoroutine(FadeUI(comboUIGroup, 1f, 0f, fadeDuration, true));
+            OnComboEnded?.Invoke();
+            isUIShown = false;
+        }
     }
 
-    public int CalculateScore(int baseScore)
+    private IEnumerator FadeUI(CanvasGroup group, float startAlpha, float endAlpha, float duration, bool disableOnComplete = false)
     {
-        return baseScore * currentMultiplier;
+        float elapsed = 0f;
+        group.alpha = startAlpha;
+
+        while (elapsed < duration)
+        {
+            group.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        group.alpha = endAlpha;
+
+        if (disableOnComplete && endAlpha <= 0f)
+        {
+            group.gameObject.SetActive(false);
+        }
     }
+
+    public void TimeUp()
+    {
+        if (isComboActive)
+        {
+            Debug.Log("Time up - resetting combo");
+            ResetCombo();
+        }
+    }
+
+
+    public int GetCurrentMultiplier() { return currentMultiplier; }
+    public int GetCurrentCombo() { return currentCombo; }
+    public int CalculateScore(int baseScore) { return baseScore * currentMultiplier; }
 }

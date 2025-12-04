@@ -14,12 +14,16 @@ public class Timer : MonoBehaviour
     [SerializeField] private Animator scorePanelAnimator;
     [SerializeField] private Animator score_timerAnimator;
     [SerializeField] private int timerDuration = 60;
+
+    [SerializeField] private ComboSystem comboSystem;
+
     [SerializeField] private TargetManager targetManager;
     [SerializeField] private PlayerController playerController;
     [SerializeField] private ShootingManager shootingManager;
     [SerializeField] private TMP_Text finalScoreText;
     [SerializeField] private TMP_Text highScoreText;
     [SerializeField] private float scoreCountUpDuration = 2f;
+
     private float remainingTime;
     private bool isTimerRunning = false;
     private int highScore;
@@ -79,6 +83,12 @@ public class Timer : MonoBehaviour
     private IEnumerator EndGameSequence()
     {
         SetPlayerControlsEnabled(false);
+
+        if (comboSystem != null)
+        {
+            comboSystem.TimeUp();
+        }
+
         if (closingTimerAnimator != null)
         {
             closingTimerAnimator.SetTrigger("CloseTimer");

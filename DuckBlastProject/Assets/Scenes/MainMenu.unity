@@ -356,6 +356,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GunController
   moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
+  shootingManager: {fileID: 0}
   moveSpeed: 5
   smoothTime: 0.1
   deadZone: 0.1
@@ -1504,7 +1505,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -125, y: 125}
+  m_AnchoredPosition: {x: -200, y: 125}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &389590540
@@ -3181,7 +3182,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 125, y: 125}
+  m_AnchoredPosition: {x: 200, y: 125}
   m_SizeDelta: {x: 200, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &728691507
@@ -7572,6 +7573,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
+  shootingManager: {fileID: 0}
   moveSpeed: 1500
   smoothTime: -0.1
   deadZone: 0.1
