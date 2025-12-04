@@ -357,6 +357,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GunController
   moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
   moveSpeed: 5
+  smoothTime: 0.1
+  deadZone: 0.1
   minX: -8
   maxX: 8
   yPosition: -4
@@ -1958,7 +1960,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.23921569, g: 0.627451, b: 0.2627451, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4457,7 +4459,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.23921569, g: 0.627451, b: 0.2627451, a: 0.39215687}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.39215687}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5055,6 +5057,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
+  moveSpeed: 1500
+  smoothTime: -0.1
+  deadZone: 0.1
   canvasRectTransform: {fileID: 1146012477}
   crosshairRectTransform: {fileID: 971962849}
 --- !u!114 &914569293
@@ -6637,7 +6642,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0.3921569, b: 0, a: 1}
+  m_Color: {r: 0.11311854, g: 0.7735849, b: 0.11311854, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -7981,7 +7986,7 @@ MonoBehaviour:
   fallingSpritesAnimator: {fileID: 1043281542}
   scorePanelAnimator: {fileID: 625103924}
   score_timerAnimator: {fileID: 514080356}
-  timerDuration: 10
+  timerDuration: 60
   targetManager: {fileID: 1921978060}
   playerController: {fileID: 914569292}
   shootingManager: {fileID: 623092710}

@@ -357,6 +357,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GunController
   moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
   moveSpeed: 5
+  smoothTime: 0.1
+  deadZone: 0.1
   minX: -8
   maxX: 8
   yPosition: -4
@@ -7570,6 +7572,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveActionReference: {fileID: -5692640340892642626, guid: c3b7a0767525a4f4d9a130e78c74abc2, type: 3}
+  moveSpeed: 1500
+  smoothTime: -0.1
+  deadZone: 0.1
   canvasRectTransform: {fileID: 1700883853}
   crosshairRectTransform: {fileID: 843448060}
 --- !u!114 &2073127505
