@@ -11,6 +11,7 @@ TagManager:
   - Bonus
   - TargetCenter
   - TargetEdge
+  - CreditsButton
   layers:
   - Default
   - TransparentFX
