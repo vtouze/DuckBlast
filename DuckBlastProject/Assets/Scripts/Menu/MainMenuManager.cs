@@ -9,6 +9,7 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private Sprite soundOffSprite;
     private string gameSceneName = "Game";
     [SerializeField] private TransitionManager transitionManager;
+    [SerializeField] private CreditsController creditsController;
 
     private bool isSoundMuted = false;
 
@@ -17,6 +18,12 @@ public class MainMenuManager : MonoBehaviour
         UpdateSoundButtonSprite();
         if (leaderboardPanel != null)
             leaderboardPanel.SetActive(false);
+
+        // Make sure credits are disabled at start
+        if (creditsController != null)
+        {
+            creditsController.gameObject.SetActive(false);
+        }
     }
 
     public void StartGame()
@@ -47,6 +54,14 @@ public class MainMenuManager : MonoBehaviour
         UpdateSoundButtonSprite();
     }
 
+    public void ToggleCredits()
+    {
+        if (creditsController != null)
+        {
+            creditsController.StartCredits();
+        }
+    }
+
     private void UpdateSoundButtonSprite()
     {
         if (soundButton != null)
@@ -57,9 +72,5 @@ public class MainMenuManager : MonoBehaviour
                 spriteRenderer.sprite = isSoundMuted ? soundOffSprite : soundOnSprite;
             }
         }
-    }
-    private void LoadLeaderboardData()
-    {
-        // Placeholder for the leaderboard logic
     }
 }

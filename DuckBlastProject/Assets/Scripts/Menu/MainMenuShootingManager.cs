@@ -16,6 +16,7 @@ public class MainMenuShootingManager : MonoBehaviour
     public UnityEvent onPlay;
     public UnityEvent onLeaderboard;
     public UnityEvent onToggleSound;
+    public UnityEvent onCredits;
 
     private Camera mainCamera;
 
@@ -44,6 +45,8 @@ public class MainMenuShootingManager : MonoBehaviour
                 onLeaderboard.Invoke();
             else if (hit.collider.CompareTag("SoundButton"))
                 onToggleSound.Invoke();
+            else if (hit.collider.CompareTag("CreditsButton"))
+                onCredits.Invoke();
         }
         else
         {
