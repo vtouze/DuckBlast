@@ -9,6 +9,7 @@ public class FloatAndMove : MonoBehaviour
 
     private Vector3 initialPosition;
     private float floatOffset;
+    private bool isAnimationPlaying = false;
 
     private void Start()
     {
@@ -17,6 +18,9 @@ public class FloatAndMove : MonoBehaviour
 
     private void Update()
     {
+        if (isAnimationPlaying)
+            return;
+
         float direction = moveRight ? 1f : -1f;
         transform.Translate(Vector3.right * direction * moveSpeed * Time.deltaTime);
 
@@ -31,5 +35,10 @@ public class FloatAndMove : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    public void SetAnimationPlaying(bool playing)
+    {
+        isAnimationPlaying = playing;
     }
 }

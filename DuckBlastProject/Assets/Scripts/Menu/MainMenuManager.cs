@@ -19,7 +19,6 @@ public class MainMenuManager : MonoBehaviour
         if (leaderboardPanel != null)
             leaderboardPanel.SetActive(false);
 
-        // Make sure credits are disabled at start
         if (creditsController != null)
         {
             creditsController.gameObject.SetActive(false);
