@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuManager : MonoBehaviour
 {
-    [SerializeField] private GameObject leaderboardPanel;
+    private GameObject leaderboardPanel;
     [SerializeField] private GameObject soundButton;
     [SerializeField] private Sprite soundOnSprite;
     [SerializeField] private Sprite soundOffSprite;
@@ -19,6 +19,7 @@ public class MainMenuManager : MonoBehaviour
         if (leaderboardPanel != null)
             leaderboardPanel.SetActive(false);
 
+        // Make sure credits are disabled at start
         if (creditsController != null)
         {
             creditsController.gameObject.SetActive(false);
@@ -39,13 +40,10 @@ public class MainMenuManager : MonoBehaviour
 
     public void ToggleLeaderboard()
     {
-        if (LeaderboardManager.Instance != null)
+        if (leaderboardPanel != null)
         {
-            LeaderboardManager.Instance.ShowLeaderboard();
-        }
-        else
-        {
-            Debug.LogWarning("LeaderboardManager instance not found!");
+            bool isActive = leaderboardPanel.activeSelf;
+            leaderboardPanel.SetActive(!isActive);
         }
     }
 

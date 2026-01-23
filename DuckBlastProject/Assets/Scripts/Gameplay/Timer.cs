@@ -33,13 +33,6 @@ public class Timer : MonoBehaviour
     {
         scorePanelAnimator.gameObject.SetActive(false);
         highScore = PlayerPrefs.GetInt("HighScore", 0);
-
-        if (!PlayerPrefs.HasKey("PlayerCounter"))
-        {
-            PlayerPrefs.SetInt("PlayerCounter", 1);
-            PlayerPrefs.Save();
-        }
-
         StartCoroutine(PlayReadyGoAnimation());
     }
 
@@ -115,20 +108,15 @@ public class Timer : MonoBehaviour
         timerText.text = "00";
         progressBar.fillAmount = 0;
         currentScore = shootingManager != null ? shootingManager.GetScore() : 0;
-
         if (currentScore > highScore)
         {
             highScore = currentScore;
             PlayerPrefs.SetInt("HighScore", highScore);
-
-            LeaderboardManager.SubmitScore(highScore);
         }
-
         if (highScoreText != null)
         {
             highScoreText.text = highScore.ToString();
         }
-
         if (scorePanelAnimator != null)
         {
             scorePanelAnimator.SetTrigger("OpenScoreDisplay");
