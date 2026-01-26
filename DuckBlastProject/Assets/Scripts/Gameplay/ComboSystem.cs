@@ -48,10 +48,8 @@ public class ComboSystem : MonoBehaviour
 
         if (comboTimerBar != null)
         {
-            Debug.Log("Combo Timer Bar is assigned");
             if (comboTimerBar.type != Image.Type.Filled)
             {
-                Debug.LogWarning("Combo Timer Bar should be of type 'Filled'");
                 comboTimerBar.type = Image.Type.Filled;
             }
 
@@ -63,7 +61,6 @@ public class ComboSystem : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Combo Timer Bar is not assigned!");
         }
     }
 
@@ -71,7 +68,6 @@ public class ComboSystem : MonoBehaviour
     {
         if (isComboActive && Time.time - lastHitTime > comboTimeWindow)
         {
-            Debug.Log("Combo expired - resetting");
             ResetCombo();
             return;
         }
@@ -80,29 +76,22 @@ public class ComboSystem : MonoBehaviour
         {
             float timeRemaining = comboTimeWindow - (Time.time - lastHitTime);
             float fillAmount = Mathf.Clamp01(timeRemaining / comboTimeWindow);
-
-            Debug.Log($"Time remaining: {timeRemaining}, Fill amount: {fillAmount}");
-
             comboTimerBar.fillAmount = fillAmount;
         }
     }
 
     public void RegisterHit(int baseScore)
     {
-        Debug.Log($"Registering hit - Current combo: {currentCombo}");
-
         if (currentCombo == 0)
         {
             currentCombo++;
             lastHitTime = Time.time;
             UpdateMultiplier();
-            Debug.Log("First hit - combo started");
             return;
         }
 
         if (currentCombo == comboThreshold2 - 1 && !isComboActive)
         {
-            Debug.Log("Reached combo threshold - showing UI");
             ShowComboUI();
             isComboActive = true;
         }
@@ -113,7 +102,6 @@ public class ComboSystem : MonoBehaviour
         if (comboTimerBar != null)
         {
             comboTimerBar.fillAmount = 1f;
-            Debug.Log("Timer bar reset to full");
         }
 
         UpdateMultiplier();
@@ -124,12 +112,10 @@ public class ComboSystem : MonoBehaviour
     {
         if (isComboActive)
         {
-            Debug.Log("Miss registered - resetting active combo");
             ResetCombo();
         }
         else if (currentCombo > 0)
         {
-            Debug.Log("Miss registered - resetting partial combo");
             currentCombo = 0;
             currentMultiplier = 1;
         }
@@ -153,13 +139,10 @@ public class ComboSystem : MonoBehaviour
         {
             currentMultiplier = 1;
         }
-
-        Debug.Log($"Multiplier updated to: {currentMultiplier}");
     }
 
     private void ResetCombo()
     {
-        Debug.Log("Resetting combo");
         currentCombo = 0;
         currentMultiplier = 1;
         isComboActive = false;
@@ -171,7 +154,6 @@ public class ComboSystem : MonoBehaviour
     {
         if (comboUIGroup != null && !isUIShown)
         {
-            Debug.Log("Showing combo UI");
             if (fadeCoroutine != null)
             {
                 StopCoroutine(fadeCoroutine);
@@ -194,7 +176,6 @@ public class ComboSystem : MonoBehaviour
     {
         if (comboUIGroup != null && isUIShown)
         {
-            Debug.Log("Hiding combo UI");
             if (fadeCoroutine != null)
             {
                 StopCoroutine(fadeCoroutine);
@@ -230,7 +211,6 @@ public class ComboSystem : MonoBehaviour
     {
         if (isComboActive)
         {
-            Debug.Log("Time up - resetting combo");
             ResetCombo();
         }
     }

@@ -21,29 +21,32 @@ public class LeaderboardManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject leaderboardPanel;
     [SerializeField] private Animator leaderboardPanelAnimator;
-    [SerializeField] private Transform[] leaderboardEntryContainers; // Tableau pour les deux conteneurs
+    [SerializeField] private Transform[] leaderboardEntryContainers;
     [SerializeField] private GameObject leaderboardEntryPrefab;
     [SerializeField] private Color playerEntryColor = Color.green;
 
     // Scores fixes par défaut
     private readonly List<(string name, long score)> defaultScores = new List<(string, long)>
     {
-        ("Player_01", 5000),
-        ("Player_02", 4500),
-        ("Player_03", 4000),
-        ("Player_04", 3500),
-        ("Player_05", 3000),
-        ("Player_06", 2500),
-        ("Player_07", 2000),
-        ("Player_08", 1500),
-        ("Player_09", 1000),
-        ("Player_10", 500)
+        ("Player_00001", 5000),
+        ("Player_00002", 4500),
+        ("Player_00003", 4000),
+        ("Player_00004", 3500),
+        ("Player_00005", 3000),
+        ("Player_00006", 2500),
+        ("Player_00007", 2000),
+        ("Player_00008", 1500),
+        ("Player_00009", 1000),
+        ("Player_00010", 500),
+        ("Player_00011", 400),
+        ("Player_00012", 300),
     };
 
     private string playerId;
-    private string playerName = "Player";
-    private int playerCounter = 1;
-    private static int lastHighScore = 0;
+    private string playerName = "Player_00000";
+    private static List<int> pendingScores = new List<int>();
+    private bool isInitialized = false;
+    private bool isSigningIn = false;
 
     private void Awake()
     {
@@ -51,6 +54,7 @@ public class LeaderboardManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            Debug.Log("LeaderboardManager instance created.");
             InitializeUnityServices();
         }
         else
@@ -61,56 +65,106 @@ public class LeaderboardManager : MonoBehaviour
 
     private async void InitializeUnityServices()
     {
+        if (isInitialized || isSigningIn) return;
+
+        isSigningIn = true;
         try
         {
             var options = new InitializationOptions();
-            await UnityServices.InitializeAsync(options);
+            await UnityServices.InitializeAsync();
+
+            await Task.Delay(500);
+
             await SignInAnonymously();
+            isInitialized = true;
+            isSigningIn = false;
+
+            if (pendingScores.Count > 0)
+            {
+                foreach (var score in pendingScores)
+                {
+                    await SubmitPendingScore(score);
+                }
+                pendingScores.Clear();
+            }
+
             Debug.Log("Unity Services initialized successfully!");
         }
         catch (System.Exception e)
         {
             Debug.LogError($"Failed to initialize Unity Services: {e.Message}");
+            isSigningIn = false;
         }
     }
 
     private async Task SignInAnonymously()
     {
-        if (!AuthenticationService.Instance.IsSignedIn)
+        try
         {
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            playerId = AuthenticationService.Instance.PlayerId;
+            if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                playerId = AuthenticationService.Instance.PlayerId;
+                Debug.Log($"Player signed in with ID: {playerId}");
 
-            playerCounter = PlayerPrefs.GetInt("PlayerCounter", 1);
-            playerName = $"Player_{playerCounter:D2}";
-            playerCounter++;
-            PlayerPrefs.SetInt("PlayerCounter", playerCounter);
-            PlayerPrefs.Save();
-
-            Debug.Log($"Player signed in with ID: {playerId}, Name: {playerName}");
+                int randomNumber = Random.Range(0, 100000);
+                playerName = $"Player_{randomNumber:D5}";
+                Debug.Log($"Player name set to: {playerName}");
+            }
+            else
+            {
+                playerId = AuthenticationService.Instance.PlayerId;
+                int randomNumber = Random.Range(0, 100000);
+                playerName = $"Player_{randomNumber:D5}";
+                Debug.Log($"Already signed in with ID: {playerId}, Name: {playerName}");
+            }
         }
-        else
+        catch (System.Exception e)
         {
-            playerId = AuthenticationService.Instance.PlayerId;
-            playerCounter = PlayerPrefs.GetInt("PlayerCounter", 1);
-            playerName = $"Player_{playerCounter:D2}";
+            Debug.LogError($"Failed to sign in: {e.Message}");
+            int randomNumber = Random.Range(0, 100000);
+            playerName = $"Player_{randomNumber:D5}";
         }
     }
 
     public static void SubmitScore(int score)
     {
+        Debug.Log($"Attempting to submit score: {score}");
+
         if (Instance == null)
         {
             Debug.LogWarning("LeaderboardManager instance not found. Score will be stored for later submission.");
-            lastHighScore = Mathf.Max(lastHighScore, score);
+            pendingScores.Add(score);
             return;
         }
 
-        Instance.StartCoroutine(Instance.InternalSubmitScoreCoroutine(score));
+        Instance.StartCoroutine(Instance.InternalSubmitScore(score));
     }
 
-    private IEnumerator InternalSubmitScoreCoroutine(int score)
+    private IEnumerator InternalSubmitScore(int score)
     {
+        Debug.Log($"Starting submission of score: {score}");
+
+        while (!isInitialized || isSigningIn)
+        {
+            yield return null;
+        }
+
+        int retryCount = 0;
+        while (!AuthenticationService.Instance.IsSignedIn && retryCount < 10)
+        {
+            retryCount++;
+            Debug.Log($"Waiting for player to sign in... Attempt {retryCount}/10");
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            Debug.LogError("Player is not signed in. Cannot submit score.");
+            pendingScores.Add(score);
+            yield break;
+        }
+
         Task submissionTask = LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardId, score);
 
         while (!submissionTask.IsCompleted)
@@ -121,12 +175,25 @@ public class LeaderboardManager : MonoBehaviour
         if (submissionTask.IsFaulted)
         {
             Debug.LogError($"Failed to submit score: {submissionTask.Exception}");
-            lastHighScore = Mathf.Max(lastHighScore, score);
+            pendingScores.Add(score);
         }
         else
         {
-            Debug.Log("Score submitted successfully!");
-            lastHighScore = 0;
+            Debug.Log($"Score {score} submitted successfully!");
+        }
+    }
+
+    private async Task SubmitPendingScore(int score)
+    {
+        try
+        {
+            Debug.Log($"Submitting pending score: {score}");
+            await LeaderboardsService.Instance.AddPlayerScoreAsync(leaderboardId, score);
+            Debug.Log($"Pending score {score} submitted successfully!");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Failed to submit pending score: {e.Message}");
         }
     }
 
@@ -138,6 +205,13 @@ public class LeaderboardManager : MonoBehaviour
             return;
         }
 
+        if (!isInitialized || !AuthenticationService.Instance.IsSignedIn)
+        {
+            Debug.LogError("Player is not authenticated. Cannot show leaderboard.");
+            DisplayDefaultScores();
+            return;
+        }
+
         if (leaderboardPanelAnimator != null)
         {
             leaderboardPanelAnimator.SetTrigger("SlideIn");
@@ -145,7 +219,6 @@ public class LeaderboardManager : MonoBehaviour
 
         leaderboardPanel.SetActive(true);
 
-        // Effacer les entrées précédentes dans les deux conteneurs
         foreach (Transform container in leaderboardEntryContainers)
         {
             foreach (Transform child in container)
@@ -156,23 +229,20 @@ public class LeaderboardManager : MonoBehaviour
 
         try
         {
-            // Récupérer les meilleurs scores
             var topScoresResponse = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId,
                 new GetScoresOptions { Limit = topScoresLimit });
 
-            // Liste pour stocker les scores réels et par défaut
             List<(string name, long score, bool isPlayer, int rank)> scoresToDisplay = new List<(string, long, bool, int)>();
 
-            // Vérifier si le joueur est dans le top
             bool playerInTop = false;
             int playerRank = -1;
             long playerScore = 0;
 
-            // Ajouter les scores réels
             for (int i = 0; i < topScoresResponse.Results.Count; i++)
             {
                 var entry = topScoresResponse.Results[i];
-                scoresToDisplay.Add((entry.PlayerName, (long)entry.Score, entry.PlayerId == playerId, i + 1));
+                string displayName = (entry.PlayerId == playerId) ? playerName : entry.PlayerName;
+                scoresToDisplay.Add((displayName, (long)entry.Score, entry.PlayerId == playerId, i + 1));
 
                 if (entry.PlayerId == playerId)
                 {
@@ -180,14 +250,12 @@ public class LeaderboardManager : MonoBehaviour
                 }
             }
 
-            // Si moins de 10 scores réels, compléter avec les scores par défaut
             for (int i = topScoresResponse.Results.Count; i < 10; i++)
             {
                 var defaultScore = defaultScores[i];
                 scoresToDisplay.Add((defaultScore.name, defaultScore.score, false, i + 1));
             }
 
-            // Si le joueur n'est pas dans le top, essayer de récupérer son score
             if (!playerInTop)
             {
                 try
@@ -195,50 +263,71 @@ public class LeaderboardManager : MonoBehaviour
                     var playerScoreResponse = await LeaderboardsService.Instance.GetPlayerScoreAsync(leaderboardId);
                     playerScore = (long)playerScoreResponse.Score;
 
-                    // Récupérer le rang du joueur
                     var allScoresResponse = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId);
-                    playerRank = 1;
-                    foreach (var entry in allScoresResponse.Results)
-                    {
-                        if (entry.PlayerId == playerId)
-                        {
-                            break;
-                        }
-                        playerRank++;
-                    }
+                    var sortedScores = allScoresResponse.Results.OrderByDescending(e => e.Score).ToList();
+                    playerRank = sortedScores.FindIndex(e => e.PlayerId == playerId) + 1;
 
-                    // Remplacer la 10ème entrée avec le score du joueur
-                    if (playerRank > 10 && scoresToDisplay.Count >= 10)
+                    if (scoresToDisplay.Count >= 10)
                     {
-                        scoresToDisplay[9] = ($"{playerName} (You)", playerScore, true, playerRank);
+                        var topNine = scoresToDisplay.Take(9).ToList();
+                        topNine.Add(($"{playerName}", playerScore, true, playerRank));
+                        scoresToDisplay = topNine;
+                    }
+                    else
+                    {
+                        scoresToDisplay.Add(($"{playerName}", playerScore, true, playerRank));
                     }
                 }
                 catch (System.Exception e)
                 {
                     Debug.LogWarning($"Could not get player score: {e.Message}");
-                    // Si on ne peut pas récupérer le score du joueur, on ne fait rien
+                    if (scoresToDisplay.Count >= 10)
+                    {
+                        var topNine = scoresToDisplay.Take(9).ToList();
+                        topNine.Add(($"{playerName}", 0, true, defaultScores.Count + 1));
+                        scoresToDisplay = topNine;
+                    }
+                    else
+                    {
+                        scoresToDisplay.Add(($"{playerName}", 0, true, defaultScores.Count + 1));
+                    }
                 }
             }
 
-            // Créer les entrées pour tous les scores
+            scoresToDisplay = scoresToDisplay.OrderByDescending(s => s.score).ToList();
+
+            for (int i = 0; i < scoresToDisplay.Count; i++)
+            {
+                var item = scoresToDisplay[i];
+                scoresToDisplay[i] = (item.name, item.score, item.isPlayer, i + 1);
+            }
+
             for (int i = 0; i < scoresToDisplay.Count; i++)
             {
                 var (name, score, isPlayer, rank) = scoresToDisplay[i];
-                int containerIndex = i / 5; // 0 pour les 5 premiers, 1 pour les 5 suivants
+                int containerIndex = (i < 5) ? 0 : 1;
                 CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], rank, name, score, isPlayer);
+            }
+
+            if (!playerInTop && scoresToDisplay.Count >= 10)
+            {
+                var playerEntry = scoresToDisplay.FirstOrDefault(s => s.isPlayer);
+                if (playerEntry.name != null)
+                {
+                    int containerIndex = 1;
+                    CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], playerEntry.rank, playerEntry.name, playerEntry.score, true);
+                }
             }
         }
         catch (System.Exception e)
         {
             Debug.LogError($"Failed to get leaderboard data: {e.Message}");
-            // En cas d'erreur, afficher les scores par défaut
             DisplayDefaultScores();
         }
     }
 
     private void DisplayDefaultScores()
     {
-        // Effacer les entrées précédentes dans les deux conteneurs
         foreach (Transform container in leaderboardEntryContainers)
         {
             foreach (Transform child in container)
@@ -247,19 +336,18 @@ public class LeaderboardManager : MonoBehaviour
             }
         }
 
-        // Afficher les scores par défaut
-        for (int i = 0; i < defaultScores.Count; i++)
+        for (int i = 0; i < Mathf.Min(defaultScores.Count, 10); i++)
         {
             var (name, score) = defaultScores[i];
-            int containerIndex = i / 5;
-            CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], i + 1, name, score, false);
+            int rank = i + 1;
+            int containerIndex = (i < 5) ? 0 : 1;
+            CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], rank, name, score, false);
         }
 
-        // Ajouter le joueur actuel s'il est connecté
         if (!string.IsNullOrEmpty(playerName))
         {
-            int containerIndex = 9 / 5; // 10ème entrée dans le 2ème conteneur
-            CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], 10, $"{playerName} (You)", 0, true);
+            int containerIndex = 1;
+            CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], defaultScores.Count + 1, $"{playerName}", 0, true);
         }
     }
 
@@ -291,5 +379,21 @@ public class LeaderboardManager : MonoBehaviour
         {
             leaderboardPanel.SetActive(false);
         }
+    }
+
+    public static void ResetPlayerData()
+    {
+        PlayerPrefs.DeleteKey("HighScore");
+
+        if (Instance != null)
+        {
+            Instance.playerName = "Player_00000";
+            Instance.isInitialized = false;
+            Instance.isSigningIn = false;
+
+            Instance.InitializeUnityServices();
+        }
+
+        Debug.Log("Player data reset successfully!");
     }
 }
