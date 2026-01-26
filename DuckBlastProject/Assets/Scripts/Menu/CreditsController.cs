@@ -5,60 +5,121 @@ public class CreditsController : MonoBehaviour
 {
     [Header("Scrolling")]
     [SerializeField] private RectTransform creditsContent;
-    [SerializeField] private Animator creditsAnimator;
-    [SerializeField] private float animationDuration = 5f;
+    [SerializeField] private float scrollSpeed = 300f;
 
-    [Header("Fade")]
+    [Header("Logo Fade")]
+    [SerializeField] private RectTransform logoRect;
     [SerializeField] private CanvasGroup creditsCanvasGroup;
     [SerializeField] private float fadeDuration = 1f;
 
     [Header("Transition")]
     [SerializeField] private Animator backgroundSlidingAnimator;
 
-    private bool isAnimationPlaying = false;
+    private Vector2 startPos;
+    private Vector2 endPos;
+    private bool fadeTriggered = false;
+    private Coroutine fadeCoroutine;
+    private bool isCreditsActive = false;
 
     private void Start()
     {
+        startPos = creditsContent.anchoredPosition;
+        endPos = new Vector2(startPos.x, startPos.y + (creditsContent.rect.height + Screen.height));
+
         gameObject.SetActive(false);
     }
 
     public void StartCredits()
     {
-        if (isAnimationPlaying) return;
-
         gameObject.SetActive(true);
-        isAnimationPlaying = true;
+        ResetCredits();
+        isCreditsActive = true;
+    }
 
-        creditsContent.anchoredPosition = Vector2.zero;
+    private void OnEnable()
+    {
+        ResetCredits();
+    }
 
+    public void ResetCredits()
+    {
+        fadeTriggered = false;
+        if (fadeCoroutine != null)
+        {
+            StopCoroutine(fadeCoroutine);
+            fadeCoroutine = null;
+        }
+
+        creditsContent.anchoredPosition = startPos;
+        if (creditsCanvasGroup != null)
+            creditsCanvasGroup.alpha = 1f;
+    }
+
+    private void Update()
+    {
+        if (isCreditsActive && !fadeTriggered)
+        {
+            LauchSlidingAnimation();
+            ScrollCredits();
+            CheckLogoFade();
+        }
+    }
+
+    private void LauchSlidingAnimation()
+    {
         if (backgroundSlidingAnimator != null)
+        {
             backgroundSlidingAnimator.SetTrigger("PlayAnimation");
-
-        if (creditsAnimator != null)
-            creditsAnimator.SetTrigger("PlayAnimation");
+        }
     }
 
-    public void OnAnimationFinished()
+    private void ScrollCredits()
     {
-        isAnimationPlaying = false;
-        ReverseAnimations();
+        creditsContent.anchoredPosition = Vector2.MoveTowards(
+            creditsContent.anchoredPosition,
+            endPos,
+            scrollSpeed * Time.deltaTime
+        );
     }
 
-    private void ReverseAnimations()
+    private void CheckLogoFade()
     {
-        if (backgroundSlidingAnimator != null)
-            backgroundSlidingAnimator.SetTrigger("ReverseAnimation");
+        if (fadeTriggered || logoRect == null || creditsCanvasGroup == null) return;
 
-        if (creditsAnimator != null)
-            creditsAnimator.SetTrigger("ReverseAnimation");
+        Vector3[] logoCorners = new Vector3[4];
+        logoRect.GetWorldCorners(logoCorners);
 
-        StartCoroutine(FadeOut());
+        Vector3 logoCenterWorld = (logoCorners[0] + logoCorners[2]) / 2f;
+        Vector2 logoCenterScreen = RectTransformUtility.WorldToScreenPoint(Camera.main, logoCenterWorld);
+
+        float screenCenterY = Screen.height / 2f;
+        float distanceFromCenter = Mathf.Abs(logoCenterScreen.y - screenCenterY);
+
+        if (distanceFromCenter < 5f)
+        {
+            fadeTriggered = true;
+            StartFadeOut();
+        }
     }
 
-    private IEnumerator FadeOut()
+    private void StartFadeOut()
+    {
+        if (fadeCoroutine != null)
+        {
+            StopCoroutine(fadeCoroutine);
+        }
+        fadeCoroutine = StartCoroutine(FadeOutCredits());
+    }
+
+    private IEnumerator FadeOutCredits()
     {
         float elapsedTime = 0f;
         float startAlpha = creditsCanvasGroup.alpha;
+
+        if (backgroundSlidingAnimator != null)
+        {
+            backgroundSlidingAnimator.SetTrigger("ReverseAnimation");
+        }
 
         while (elapsedTime < fadeDuration)
         {
@@ -68,6 +129,8 @@ public class CreditsController : MonoBehaviour
         }
 
         creditsCanvasGroup.alpha = 0f;
+
+        isCreditsActive = false;
         gameObject.SetActive(false);
     }
 }

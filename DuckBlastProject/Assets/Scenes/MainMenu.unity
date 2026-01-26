@@ -1888,16 +1888,12 @@ PrefabInstance:
       value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 1561247995596662699, guid: b9308e763eeab18408965913935c9fb8, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 2200
-      objectReference: {fileID: 0}
-    - target: {fileID: 1561247995596662699, guid: b9308e763eeab18408965913935c9fb8, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1561247995596662699, guid: b9308e763eeab18408965913935c9fb8, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -1500
+      value: -2140
       objectReference: {fileID: 0}
     - target: {fileID: 1884776573159885733, guid: b9308e763eeab18408965913935c9fb8, type: 3}
       propertyPath: m_AnchorMax.y
@@ -2370,17 +2366,12 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 4345463361643746016, guid: b9308e763eeab18408965913935c9fb8, type: 3}
-    - {fileID: 5796983526145397179, guid: b9308e763eeab18408965913935c9fb8, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 5582146828492276415, guid: b9308e763eeab18408965913935c9fb8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 488596141}
-    - targetCorrespondingSourceObject: {fileID: 4855295298991015280, guid: b9308e763eeab18408965913935c9fb8, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 619193693}
   m_SourcePrefab: {fileID: 100100000, guid: b9308e763eeab18408965913935c9fb8, type: 3}
 --- !u!224 &488596138 stripped
 RectTransform:
@@ -2390,6 +2381,11 @@ RectTransform:
 --- !u!1 &488596139 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5582146828492276415, guid: b9308e763eeab18408965913935c9fb8, type: 3}
+  m_PrefabInstance: {fileID: 488596137}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &488596140 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 454140445714320051, guid: b9308e763eeab18408965913935c9fb8, type: 3}
   m_PrefabInstance: {fileID: 488596137}
   m_PrefabAsset: {fileID: 0}
 --- !u!225 &488596141
@@ -3006,38 +3002,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreditsController
   creditsContent: {fileID: 488596138}
-  creditsAnimator: {fileID: 619193693}
-  animationDuration: 5
+  scrollSpeed: 300
+  logoRect: {fileID: 488596140}
   creditsCanvasGroup: {fileID: 488596141}
   fadeDuration: 1
   backgroundSlidingAnimator: {fileID: 2037627648}
---- !u!1 &619193688 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4855295298991015280, guid: b9308e763eeab18408965913935c9fb8, type: 3}
-  m_PrefabInstance: {fileID: 488596137}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &619193693
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 619193688}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 1008c39672f3db64faab0be1b62b2c8f, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &632770743
 GameObject:
   m_ObjectHideFlags: 0
@@ -5230,6 +5199,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 927354696}
+  - component: {fileID: 927354697}
   m_Layer: 0
   m_Name: ItemsTransition
   m_TagString: Untagged
@@ -5255,6 +5225,28 @@ Transform:
   - {fileID: 475307793}
   m_Father: {fileID: 272842945}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &927354697
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 927354695}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 5f4e7b459ae4622438a4f62337253ef8, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &968551686
 GameObject:
   m_ObjectHideFlags: 0
@@ -8294,7 +8286,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 845a6fd8fa72a6f47bfa5df9bbdc0b26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TransitionManager
-  slidingPanelAnimator: {fileID: 0}
+  slidingPanelAnimator: {fileID: 927354697}
   fallingSpritesAnimator: {fileID: 1915588303}
   slideAnimationDuration: 3
   fallAnimationDuration: 3
@@ -8652,7 +8644,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1915588302
 Transform:
   m_ObjectHideFlags: 0
@@ -9009,13 +9001,13 @@ Animator:
   m_GameObject: {fileID: 2037627646}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: c9b7088a39b275342ba3caec4611af81, type: 2}
+  m_Controller: {fileID: 9100000, guid: 4ca3275fd98965349855cf4be36ed0e5, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
-  m_AnimatePhysics: 1
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
