@@ -49,6 +49,14 @@ public class MainMenuManager : MonoBehaviour
         }
     }
 
+    public void ToggleHome()
+    {
+        if (leaderboardPanel != null)
+        {
+            leaderboardPanel.SetActive(false);
+        }
+    }
+
     public void ToggleSound()
     {
         isSoundMuted = !isSoundMuted;

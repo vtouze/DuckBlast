@@ -17,6 +17,7 @@ public class MainMenuShootingManager : MonoBehaviour
     public UnityEvent onLeaderboard;
     public UnityEvent onToggleSound;
     public UnityEvent onCredits;
+    public UnityEvent onHome;
 
     private Camera mainCamera;
 
@@ -47,6 +48,8 @@ public class MainMenuShootingManager : MonoBehaviour
                 onToggleSound.Invoke();
             else if (hit.collider.CompareTag("CreditsButton"))
                 onCredits.Invoke();
+            else if (hit.collider.CompareTag("HomeButton"))
+                onHome.Invoke();
         }
         else
         {

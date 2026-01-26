@@ -12,6 +12,7 @@ TagManager:
   - TargetCenter
   - TargetEdge
   - CreditsButton
+  - HomeButton
   layers:
   - Default
   - TransparentFX
