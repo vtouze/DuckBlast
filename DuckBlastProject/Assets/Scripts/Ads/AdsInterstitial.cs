@@ -6,7 +6,7 @@ public class AdsInterstitial : MonoBehaviour, IUnityAdsLoadListener, IUnityAdsSh
     [SerializeField] string _androidAdUnitId = "Interstitial_Android";
     [SerializeField] string _iOSAdUnitId = "Interstitial_iOS";
     private string _adUnitId;
-    private float showAdProbability = 0.5f;
+    private float showAdProbability = 0.25f;
 
     void Awake()
     {
