@@ -29,22 +29,22 @@ public class LeaderboardManager : MonoBehaviour
     // Scores fixes par défaut
     private readonly List<(string name, long score)> defaultScores = new List<(string, long)>
     {
-        ("Player_00001", 5000),
-        ("Player_00002", 4500),
-        ("Player_00003", 4000),
-        ("Player_00004", 3500),
-        ("Player_00005", 3000),
-        ("Player_00006", 2500),
-        ("Player_00007", 2000),
-        ("Player_00008", 1500),
-        ("Player_00009", 1000),
-        ("Player_00010", 500),
-        ("Player_00011", 400),
-        ("Player_00012", 300),
+        ("Player_0001", 5000),
+        ("Player_0002", 4500),
+        ("Player_0003", 4000),
+        ("Player_0004", 3500),
+        ("Player_0005", 3000),
+        ("Player_0006", 2500),
+        ("Player_0007", 2000),
+        ("Player_0008", 1500),
+        ("Player_0009", 1000),
+        ("Player_0010", 500),
+        ("Player_0011", 400),
+        ("Player_0012", 300),
     };
 
     private string playerId;
-    private string playerName = "Player_00000";
+    private string playerName = "Player_0000";
     private static List<int> pendingScores = new List<int>();
     private bool isInitialized = false;
     private bool isSigningIn = false;
@@ -108,23 +108,23 @@ public class LeaderboardManager : MonoBehaviour
                 playerId = AuthenticationService.Instance.PlayerId;
                 Debug.Log($"Player signed in with ID: {playerId}");
 
-                int randomNumber = Random.Range(0, 100000);
-                playerName = $"Player_{randomNumber:D5}";
+                int randomNumber = Random.Range(0, 10000);
+                playerName = $"Player_{randomNumber:D4}";
                 Debug.Log($"Player name set to: {playerName}");
             }
             else
             {
                 playerId = AuthenticationService.Instance.PlayerId;
-                int randomNumber = Random.Range(0, 100000);
-                playerName = $"Player_{randomNumber:D5}";
+                int randomNumber = Random.Range(0, 10000);
+                playerName = $"Player_{randomNumber:D4}";
                 Debug.Log($"Already signed in with ID: {playerId}, Name: {playerName}");
             }
         }
         catch (System.Exception e)
         {
             Debug.LogError($"Failed to sign in: {e.Message}");
-            int randomNumber = Random.Range(0, 100000);
-            playerName = $"Player_{randomNumber:D5}";
+            int randomNumber = Random.Range(0, 10000);
+            playerName = $"Player_{randomNumber:D4}";
         }
     }
 
@@ -385,7 +385,7 @@ public class LeaderboardManager : MonoBehaviour
 
         if (Instance != null)
         {
-            Instance.playerName = "Player_00000";
+            Instance.playerName = "Player_0000";
             Instance.isInitialized = false;
             Instance.isSigningIn = false;
 

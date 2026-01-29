@@ -10,7 +10,7 @@ public class CreditsController : MonoBehaviour
     [Header("Animation")]
     [SerializeField] private Animator creditsAnimator;
     [SerializeField] private Animator backgroundSlidingAnimator;
-    [SerializeField] private float animationDuration = 8f;
+    private float animationDuration = 10f;
 
     private bool isCreditsActive = false;
     private Coroutine fadeCoroutine;
