@@ -3,7 +3,6 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuManager : MonoBehaviour
 {
-    [SerializeField] private GameObject leaderboardPanel;
     [SerializeField] private GameObject soundButton;
     [SerializeField] private Sprite soundOnSprite;
     [SerializeField] private Sprite soundOffSprite;
@@ -16,8 +15,6 @@ public class MainMenuManager : MonoBehaviour
     private void Start()
     {
         UpdateSoundButtonSprite();
-        if (leaderboardPanel != null)
-            leaderboardPanel.SetActive(false);
 
         if (creditsController != null)
         {
@@ -43,17 +40,13 @@ public class MainMenuManager : MonoBehaviour
         {
             LeaderboardManager.Instance.ShowLeaderboard();
         }
-        else
-        {
-            Debug.LogWarning("LeaderboardManager instance not found!");
-        }
     }
 
     public void ToggleHome()
     {
-        if (leaderboardPanel != null)
+        if (LeaderboardManager.Instance != null)
         {
-            leaderboardPanel.SetActive(false);
+            LeaderboardManager.Instance.HideLeaderboard();
         }
     }
 

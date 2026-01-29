@@ -21,6 +21,7 @@ public class LeaderboardManager : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject leaderboardPanel;
     [SerializeField] private Animator leaderboardPanelAnimator;
+    [SerializeField] private Animator itemsTransitionAnimator;
     [SerializeField] private Transform[] leaderboardEntryContainers;
     [SerializeField] private GameObject leaderboardEntryPrefab;
     [SerializeField] private Color playerEntryColor = Color.green;
@@ -216,6 +217,10 @@ public class LeaderboardManager : MonoBehaviour
         {
             leaderboardPanelAnimator.SetTrigger("SlideIn");
         }
+        if (itemsTransitionAnimator != null)
+        {
+            itemsTransitionAnimator.SetTrigger("PlayAnimation");
+        }
 
         leaderboardPanel.SetActive(true);
 
@@ -368,16 +373,9 @@ public class LeaderboardManager : MonoBehaviour
         {
             leaderboardPanelAnimator.SetTrigger("SlideOut");
         }
-
-        StartCoroutine(DisableAfterAnimation());
-    }
-
-    private IEnumerator DisableAfterAnimation()
-    {
-        yield return new WaitForSeconds(0.5f);
-        if (leaderboardPanel != null)
+        if (itemsTransitionAnimator != null)
         {
-            leaderboardPanel.SetActive(false);
+            itemsTransitionAnimator.SetTrigger("ReverseAnimation");
         }
     }
 
