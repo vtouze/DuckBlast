@@ -26,7 +26,6 @@ public class LeaderboardManager : MonoBehaviour
     [SerializeField] private GameObject leaderboardEntryPrefab;
     [SerializeField] private Color playerEntryColor = Color.green;
 
-    // Scores fixes par défaut
     private readonly List<(string name, long score)> defaultScores = new List<(string, long)>
     {
         ("Player_0001", 5000),
@@ -234,94 +233,84 @@ public class LeaderboardManager : MonoBehaviour
 
         try
         {
+            var allScoresResponse = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId);
+            var allScores = allScoresResponse.Results.OrderByDescending(e => e.Score).ToList();
+
+            var playerEntry = allScores.FirstOrDefault(e => e.PlayerId == playerId);
+            int playerRank = playerEntry != null ?
+                allScores.IndexOf(playerEntry) + 1 :
+                allScores.Count + 1;
+            long playerScore = playerEntry != null ? (long)playerEntry.Score : 0;
+            bool playerInTop10 = playerRank <= 10;
+
+            Debug.Log($"Player score: {playerScore}, rank: {playerRank}, inTop10: {playerInTop10}");
+
             var topScoresResponse = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId,
-                new GetScoresOptions { Limit = topScoresLimit });
+                new GetScoresOptions { Limit = 10 });
 
-            List<(string name, long score, bool isPlayer, int rank)> scoresToDisplay = new List<(string, long, bool, int)>();
+            List<(string name, long score, bool isPlayer, int displayRank)> entriesToDisplay = new List<(string, long, bool, int)>();
 
-            bool playerInTop = false;
-            int playerRank = -1;
-            long playerScore = 0;
-
-            for (int i = 0; i < topScoresResponse.Results.Count; i++)
+            int topScoreCount = 0;
+            foreach (var entry in topScoresResponse.Results)
             {
-                var entry = topScoresResponse.Results[i];
-                string displayName = (entry.PlayerId == playerId) ? playerName : entry.PlayerName;
-                scoresToDisplay.Add((displayName, (long)entry.Score, entry.PlayerId == playerId, i + 1));
+                if (topScoreCount >= 10) break;
 
-                if (entry.PlayerId == playerId)
+                if (entry.PlayerId == playerId && playerInTop10)
                 {
-                    playerInTop = true;
+                    continue;
+                }
+
+                entriesToDisplay.Add((entry.PlayerName, (long)entry.Score, false, topScoreCount + 1));
+                topScoreCount++;
+            }
+
+            while (entriesToDisplay.Count < 10 && entriesToDisplay.Count < defaultScores.Count)
+            {
+                int defaultIndex = entriesToDisplay.Count;
+                entriesToDisplay.Add((defaultScores[defaultIndex].name,
+                                     defaultScores[defaultIndex].score,
+                                     false,
+                                     entriesToDisplay.Count + 1));
+            }
+
+            if (playerInTop10 && playerEntry != null)
+            {
+                int insertPos = 0;
+                while (insertPos < entriesToDisplay.Count && entriesToDisplay[insertPos].score > playerScore)
+                {
+                    insertPos++;
+                }
+
+                entriesToDisplay.Insert(insertPos, (playerName, playerScore, true, insertPos + 1));
+
+                if (entriesToDisplay.Count > 10)
+                {
+                    entriesToDisplay.RemoveAt(10);
                 }
             }
 
-            for (int i = topScoresResponse.Results.Count; i < 10; i++)
+            for (int i = 0; i < 10; i++)
             {
-                var defaultScore = defaultScores[i];
-                scoresToDisplay.Add((defaultScore.name, defaultScore.score, false, i + 1));
-            }
-
-            if (!playerInTop)
-            {
-                try
+                if (i < entriesToDisplay.Count)
                 {
-                    var playerScoreResponse = await LeaderboardsService.Instance.GetPlayerScoreAsync(leaderboardId);
-                    playerScore = (long)playerScoreResponse.Score;
-
-                    var allScoresResponse = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId);
-                    var sortedScores = allScoresResponse.Results.OrderByDescending(e => e.Score).ToList();
-                    playerRank = sortedScores.FindIndex(e => e.PlayerId == playerId) + 1;
-
-                    if (scoresToDisplay.Count >= 10)
-                    {
-                        var topNine = scoresToDisplay.Take(9).ToList();
-                        topNine.Add(($"{playerName}", playerScore, true, playerRank));
-                        scoresToDisplay = topNine;
-                    }
-                    else
-                    {
-                        scoresToDisplay.Add(($"{playerName}", playerScore, true, playerRank));
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"Could not get player score: {e.Message}");
-                    if (scoresToDisplay.Count >= 10)
-                    {
-                        var topNine = scoresToDisplay.Take(9).ToList();
-                        topNine.Add(($"{playerName}", 0, true, defaultScores.Count + 1));
-                        scoresToDisplay = topNine;
-                    }
-                    else
-                    {
-                        scoresToDisplay.Add(($"{playerName}", 0, true, defaultScores.Count + 1));
-                    }
+                    var (name, score, isPlayer, displayRank) = entriesToDisplay[i];
+                    int containerIndex = (i < 5) ? 0 : 1;
+                    CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex],
+                                          displayRank,
+                                          name,
+                                          score,
+                                          isPlayer);
                 }
             }
 
-            scoresToDisplay = scoresToDisplay.OrderByDescending(s => s.score).ToList();
-
-            for (int i = 0; i < scoresToDisplay.Count; i++)
+            if (!playerInTop10)
             {
-                var item = scoresToDisplay[i];
-                scoresToDisplay[i] = (item.name, item.score, item.isPlayer, i + 1);
-            }
-
-            for (int i = 0; i < scoresToDisplay.Count; i++)
-            {
-                var (name, score, isPlayer, rank) = scoresToDisplay[i];
-                int containerIndex = (i < 5) ? 0 : 1;
-                CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], rank, name, score, isPlayer);
-            }
-
-            if (!playerInTop && scoresToDisplay.Count >= 10)
-            {
-                var playerEntry = scoresToDisplay.FirstOrDefault(s => s.isPlayer);
-                if (playerEntry.name != null)
-                {
-                    int containerIndex = 1;
-                    CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], playerEntry.rank, playerEntry.name, playerEntry.score, true);
-                }
+                int containerIndex = 1;
+                CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex],
+                                      10,
+                                      playerName,
+                                      playerScore,
+                                      true);
             }
         }
         catch (System.Exception e)
@@ -341,18 +330,25 @@ public class LeaderboardManager : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < Mathf.Min(defaultScores.Count, 10); i++)
+        for (int i = 0; i < 9; i++)
         {
             var (name, score) = defaultScores[i];
-            int rank = i + 1;
             int containerIndex = (i < 5) ? 0 : 1;
-            CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], rank, name, score, false);
+            CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex],
+                                  i + 1,
+                                  name,
+                                  score,
+                                  false);
         }
 
         if (!string.IsNullOrEmpty(playerName))
         {
             int containerIndex = 1;
-            CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex], defaultScores.Count + 1, $"{playerName}", 0, true);
+            CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex],
+                                  10,
+                                  playerName,
+                                  0,
+                                  true);
         }
     }
 
