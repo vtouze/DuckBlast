@@ -245,7 +245,7 @@ public class ShootingManager : MonoBehaviour
             else if (currentMultiplier == 4)
             {
                 popupText.color = comboSystem.comboColor4;
-                popupText.fontStyle = FontStyles.Bold | FontStyles.Underline;
+                popupText.fontStyle = FontStyles.Bold | FontStyles.Italic;
             }
             else
             {
