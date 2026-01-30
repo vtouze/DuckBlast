@@ -222,13 +222,13 @@ public class ShootingManager : MonoBehaviour
 
             if (currentMultiplier > 1)
             {
-                popupText.text = $"+{baseScoreValue} x{currentMultiplier}";
+                popupText.text = $"+{baseScoreValue} x {currentMultiplier}";
                 popupText.fontSize *= 1.2f;
                 popupText.alignment = TextAlignmentOptions.Center;
             }
             else
             {
-                popupText.text = $"+{scoreValue}";
+                popupText.text = $"+ {scoreValue}";
                 popupText.alignment = TextAlignmentOptions.Left;
             }
 

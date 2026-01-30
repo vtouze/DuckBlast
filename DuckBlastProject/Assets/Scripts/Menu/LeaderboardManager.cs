@@ -29,18 +29,18 @@ public class LeaderboardManager : MonoBehaviour
 
     private readonly List<(string name, long score)> defaultScores = new List<(string, long)>
     {
-        ("Player_0001", 5000),
-        ("Player_0002", 4500),
-        ("Player_0003", 4000),
-        ("Player_0004", 3500),
-        ("Player_0005", 3000),
-        ("Player_0006", 2500),
-        ("Player_0007", 2000),
-        ("Player_0008", 1500),
-        ("Player_0009", 1000),
-        ("Player_0010", 500),
-        ("Player_0011", 400),
-        ("Player_0012", 300),
+        ("Player_0001", 2000),
+        ("Player_0002", 1500),
+        ("Player_0003", 1000),
+        ("Player_0004", 900),
+        ("Player_0005", 800),
+        ("Player_0006", 700),
+        ("Player_0007", 600),
+        ("Player_0008", 500),
+        ("Player_0009", 400),
+        ("Player_0010", 300),
+        ("Player_0011", 200),
+        ("Player_0012", 100),
     };
 
     private string playerId;
