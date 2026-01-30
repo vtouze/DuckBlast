@@ -9,6 +9,7 @@ using UnityEngine.UI;
 using Unity.Services.Leaderboards.Models;
 using System.Collections;
 using System.Linq;
+using System;
 
 public class LeaderboardManager : MonoBehaviour
 {
@@ -47,6 +48,8 @@ public class LeaderboardManager : MonoBehaviour
     private static List<int> pendingScores = new List<int>();
     private bool isInitialized = false;
     private bool isSigningIn = false;
+    private const string PlayerNameKey = "PlayerName";
+    private const string PlayerIdKey = "PlayerId";
 
     private void Awake()
     {
@@ -72,9 +75,7 @@ public class LeaderboardManager : MonoBehaviour
         {
             var options = new InitializationOptions();
             await UnityServices.InitializeAsync();
-
             await Task.Delay(500);
-
             await SignInAnonymously();
             isInitialized = true;
             isSigningIn = false;
@@ -107,25 +108,40 @@ public class LeaderboardManager : MonoBehaviour
                 playerId = AuthenticationService.Instance.PlayerId;
                 Debug.Log($"Player signed in with ID: {playerId}");
 
-                int randomNumber = Random.Range(0, 10000);
-                playerName = $"Player_{randomNumber:D4}";
+                int hash = playerId.GetHashCode();
+                int playerNumber = Mathf.Abs(hash) % 10000;
+                playerName = $"Player_{playerNumber:D4}";
+
+                PlayerPrefs.SetString("PlayerName", playerName);
+                PlayerPrefs.Save();
+
                 Debug.Log($"Player name set to: {playerName}");
             }
             else
             {
                 playerId = AuthenticationService.Instance.PlayerId;
-                int randomNumber = Random.Range(0, 10000);
-                playerName = $"Player_{randomNumber:D4}";
+                playerName = PlayerPrefs.GetString("PlayerName", "");
+
+                if (string.IsNullOrEmpty(playerName))
+                {
+                    int hash = playerId.GetHashCode();
+                    int playerNumber = Mathf.Abs(hash) % 10000;
+                    playerName = $"Player_{playerNumber:D4}";
+                    PlayerPrefs.SetString("PlayerName", playerName);
+                    PlayerPrefs.Save();
+                }
+
                 Debug.Log($"Already signed in with ID: {playerId}, Name: {playerName}");
             }
         }
         catch (System.Exception e)
         {
             Debug.LogError($"Failed to sign in: {e.Message}");
-            int randomNumber = Random.Range(0, 10000);
+            int randomNumber = UnityEngine.Random.Range(0, 10000);
             playerName = $"Player_{randomNumber:D4}";
         }
     }
+
 
     public static void SubmitScore(int score)
     {
@@ -237,40 +253,61 @@ public class LeaderboardManager : MonoBehaviour
             var allScores = allScoresResponse.Results.OrderByDescending(e => e.Score).ToList();
 
             var playerEntry = allScores.FirstOrDefault(e => e.PlayerId == playerId);
+            long playerScore = playerEntry != null ? (long)playerEntry.Score : 0;
             int playerRank = playerEntry != null ?
                 allScores.IndexOf(playerEntry) + 1 :
                 allScores.Count + 1;
-            long playerScore = playerEntry != null ? (long)playerEntry.Score : 0;
             bool playerInTop10 = playerRank <= 10;
 
-            Debug.Log($"Player score: {playerScore}, rank: {playerRank}, inTop10: {playerInTop10}");
+            Debug.Log($"Player: {playerName}, Score: {playerScore}, Rank: {playerRank}, InTop10: {playerInTop10}");
 
             var topScoresResponse = await LeaderboardsService.Instance.GetScoresAsync(leaderboardId,
                 new GetScoresOptions { Limit = 10 });
 
-            List<(string name, long score, bool isPlayer, int displayRank)> entriesToDisplay = new List<(string, long, bool, int)>();
+            var combinedScores = new List<(string name, long score, bool isPlayer, string playerId)>();
 
-            int topScoreCount = 0;
-            foreach (var entry in topScoresResponse.Results)
+            foreach (var entry in allScores)
             {
-                if (topScoreCount >= 10) break;
-
-                if (entry.PlayerId == playerId && playerInTop10)
-                {
-                    continue;
-                }
-
-                entriesToDisplay.Add((entry.PlayerName, (long)entry.Score, false, topScoreCount + 1));
-                topScoreCount++;
+                string displayName = entry.PlayerId == playerId ?
+                    playerName :
+                    $"Player_{Mathf.Abs(entry.PlayerId.GetHashCode() % 10000):D4}";
+                combinedScores.Add((displayName, (long)entry.Score, entry.PlayerId == playerId, entry.PlayerId));
             }
 
-            while (entriesToDisplay.Count < 10 && entriesToDisplay.Count < defaultScores.Count)
+            foreach (var defaultScore in defaultScores)
+            {
+                if (!combinedScores.Any(s => s.name == defaultScore.name))
+                {
+                    combinedScores.Add((defaultScore.name, defaultScore.score, false, ""));
+                }
+            }
+
+            var sortedScores = combinedScores.OrderByDescending(s => s.score).ToList();
+
+            List<(string name, long score, bool isPlayer, int displayRank)> entriesToDisplay =
+                new List<(string, long, bool, int)>();
+
+            int addedCount = 0;
+            foreach (var score in sortedScores)
+            {
+                if (addedCount >= 9) break;
+
+                if (score.isPlayer) continue;
+
+                entriesToDisplay.Add((score.name, score.score, false, addedCount + 1));
+                addedCount++;
+            }
+
+            while (entriesToDisplay.Count < 9 && entriesToDisplay.Count < defaultScores.Count)
             {
                 int defaultIndex = entriesToDisplay.Count;
-                entriesToDisplay.Add((defaultScores[defaultIndex].name,
-                                     defaultScores[defaultIndex].score,
-                                     false,
-                                     entriesToDisplay.Count + 1));
+                if (!entriesToDisplay.Any(e => e.name == defaultScores[defaultIndex].name))
+                {
+                    entriesToDisplay.Add((defaultScores[defaultIndex].name,
+                                        defaultScores[defaultIndex].score,
+                                        false,
+                                        entriesToDisplay.Count + 1));
+                }
             }
 
             if (playerInTop10 && playerEntry != null)
@@ -283,13 +320,13 @@ public class LeaderboardManager : MonoBehaviour
 
                 entriesToDisplay.Insert(insertPos, (playerName, playerScore, true, insertPos + 1));
 
-                if (entriesToDisplay.Count > 10)
+                if (entriesToDisplay.Count > 9)
                 {
-                    entriesToDisplay.RemoveAt(10);
+                    entriesToDisplay.RemoveAt(9);
                 }
             }
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 9; i++)
             {
                 if (i < entriesToDisplay.Count)
                 {
@@ -303,7 +340,33 @@ public class LeaderboardManager : MonoBehaviour
                 }
             }
 
-            if (!playerInTop10)
+            if (playerInTop10)
+            {
+                if (sortedScores.Count > 9)
+                {
+                    var tenthScore = sortedScores[9];
+                    if (!tenthScore.isPlayer)
+                    {
+                        int containerIndex = 1;
+                        CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex],
+                                              10,
+                                              tenthScore.name,
+                                              tenthScore.score,
+                                              false);
+                    }
+                    else if (sortedScores.Count > 10)
+                    {
+                        var eleventhScore = sortedScores[10];
+                        int containerIndex = 1;
+                        CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex],
+                                              10,
+                                              eleventhScore.name,
+                                              eleventhScore.score,
+                                              false);
+                    }
+                }
+            }
+            else
             {
                 int containerIndex = 1;
                 CreateLeaderboardEntry(leaderboardEntryContainers[containerIndex],
@@ -378,13 +441,13 @@ public class LeaderboardManager : MonoBehaviour
     public static void ResetPlayerData()
     {
         PlayerPrefs.DeleteKey("HighScore");
+        PlayerPrefs.DeleteKey("PlayerName");
 
         if (Instance != null)
         {
             Instance.playerName = "Player_0000";
             Instance.isInitialized = false;
             Instance.isSigningIn = false;
-
             Instance.InitializeUnityServices();
         }
 
